@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(fontawesome)
+library(shinyjs)
 
 camel_list = c("blue","green","orange","red","yellow")
 
@@ -384,6 +385,105 @@ playerHandVisual <- function(hand_df){
   return(hand_vis_df)
 }
 
+global_hand_plot <- function(){
+  
+  start_camel_tile_df
+  
+  b_c_hand <- handColumnClean(start_camel_tile_df['blue'])
+  value_hand <- valueHand(start_camel_tile_df['blue'])
+  x_append <- xHand(b_c_hand)
+  y_append <- yHand(b_c_hand)
+  color_append <- appendHand(start_camel_tile_df['blue'],"blue")
+  
+  value_hand <- valueHand(start_camel_tile_df['green'], value_hand)
+  g_c_hand <- handColumnClean(start_camel_tile_df['green'])
+  color_append <- appendHand(start_camel_tile_df['green'],"green",color_append)
+  x_append <- xHand(g_c_hand,x_append)
+  y_append <- yHand(g_c_hand, y_append)
+  
+  value_hand <- valueHand(start_camel_tile_df['orange'], value_hand)
+  o_c_hand <- handColumnClean(start_camel_tile_df['orange'])
+  color_append <- appendHand(start_camel_tile_df['orange'],"orange",color_append)
+  x_append <- xHand(o_c_hand,x_append)
+  y_append <- yHand(o_c_hand, y_append)
+  
+  value_hand <- valueHand(start_camel_tile_df['red'], value_hand)
+  r_c_hand <- handColumnClean(start_camel_tile_df['red'])
+  color_append <- appendHand(start_camel_tile_df['red'],"red",color_append)
+  x_append <- xHand(r_c_hand,x_append)
+  y_append <- yHand(r_c_hand, y_append)
+  
+  value_hand <- valueHand(start_camel_tile_df['yellow'], value_hand)
+  y_c_hand <- handColumnClean(start_camel_tile_df['yellow'])
+  color_append <- appendHand(start_camel_tile_df['yellow'],"yellow",color_append)
+  x_append <- xHand(y_c_hand,x_append)
+  y_append <- yHand(y_c_hand, y_append)
+  
+  if(length(y_append)==0){
+    
+    handggplot <- ggplot() +
+      theme_void() +
+      theme(plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"))
+    return(handggplot)
+  }
+  else
+  {
+    handggplot <- ggplot() +
+      geom_point(aes(x_append, y_append),
+                 color = color_append,
+                 shape = 15,
+                 size = 8.5) +
+      geom_text(aes(x_append, y_append, label=value_hand), 
+                color = "black") +
+      theme(
+        axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position="none") +
+      scale_x_discrete(expand = c(0, 1.9)) +
+      scale_y_discrete(expand = c(0, 1.9))
+    return(handggplot)
+  }
+}
+
+wlScore <- function(curr_pick, other_pick){
+  ret_score = 8
+  if (curr_pick == other_pick){
+    ret_score = 6
+  }
+  return(ret_score)
+}
+
+finalScore <- function(c_rnking, pick_w, w_score, pick_l, l_score){
+  total_change = 0
+  
+  if(c_rnking[1] == pick_w ||
+     pick_w == ""){
+    total_change = w_score
+  }
+  else{
+    total_changes = -1
+  }
+  
+  if(tail(c_rnking, n=1) == pick_l ||
+     pick_l == ""){
+    total_change = total_change + l_score
+  }
+  else{
+    total_change = total_change - 1
+  }
+  return(total_change)
+}
 
 ##### Machine Learning Section #####
 ##################################################################
@@ -1055,7 +1155,6 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
       ai_info[co] <- 0
     }
   }
-  
   #need to get position for each color and # of camels above
   for(c in all_colors){
     co <- co + 1
@@ -1065,7 +1164,6 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
     ai_info[co] <- roll_cord[1,1]/4
   }
   
-  
   co <- co + 1
   
   if(p2_final_status["winner"]==""){
@@ -1073,7 +1171,6 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
   } else{
     ai_info[co] <- 1
   }
-  
   co <- co + 1
   
   if(p2_final_status["loser"]==""){

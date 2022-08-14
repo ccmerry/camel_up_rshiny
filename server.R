@@ -34,13 +34,23 @@ shinyServer(function(input, output, session) {
   turn1 <- reactive({"player1"})
   
   
-  p_hand_view <- reactiveValues(phandv = 0)
+  p_hand_view <- reactiveValues(phandv = global_hand_plot())
+  
   p1_hand_view <- reactiveValues(p1handv = 0)
   p2_hand_view <- reactiveValues(p2handv = 0)
   
-  
   player1 <- reactiveValues(p1df = player1_df)
   player2 <- reactiveValues(p2df = player2_df)
+  
+  p1_wl_hand <- reactiveValues(p1w = "",
+                               p1l = "",
+                               p1ws = 0,
+                               p1ls = 0)
+  
+  p2_wl_hand <- reactiveValues(p2w = "",
+                               p2l = "",
+                               p2ws = 0,
+                               p2ls = 0)
   
   playerTurn <- reactiveVal({
     "player1"
@@ -106,9 +116,13 @@ shinyServer(function(input, output, session) {
       colors$colors_left <- reset_camels(colors$colors_left)
       
       #resets hands
+      p1_hand_view$p1handv = 0
+      p2_hand_view$p2handv = 0
       player1$p1df = player1_df
       player2$p2df = player2_df
       camel_tiled$ct_df <- start_camel_tile_df
+      
+      camel_server(stable_camel)
     }
     
     if (playerTurn() == "player1") {
@@ -165,6 +179,16 @@ shinyServer(function(input, output, session) {
     win_status <- win_check(main_matrix$df)
     if(win_status) {
       print("winner")
+      
+      p1_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p1_wl_hand$p1w, p1_wl_hand$p1ws, p1_wl_hand$p1l, p1_wl_hand$p1ls)
+      p2_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p2_wl_hand$p2w, p2_wl_hand$p2ws, p2_wl_hand$p2l, p2_wl_hand$p2ls)
+      
+      player_score$ps_df['player1score'] <- player_score$ps_df['player1score'] + p1_adj
+      player_score$ps_df['player2score'] <- player_score$ps_df['player2score'] + p2_adj
+      
+      print(player_score$ps_df['player1score'])
+      print(player_score$ps_df['player2score'])
+      
       colors$colors_left <- reset_camels(colors$colors_left)
       main_matrix$df <- sboard()
       order_list <- find_camel_order(main_matrix$df)
@@ -179,7 +203,7 @@ shinyServer(function(input, output, session) {
     p_hand_view$phandv <- hnd_tst
   })
   
-  
+  #When a card is picked for current leg of the race
   observeEvent(input$pickCamel, {
     search_value <- camel_tiled$ct_df[input$camelBet] %>%
       filter(camel_tiled$ct_df[input$camelBet] == max(camel_tiled$ct_df[input$camelBet]))
@@ -205,8 +229,8 @@ shinyServer(function(input, output, session) {
       playerTurn("player1")
     }
     
-    hnd_tst <- hand_plot()
-    p_hand_view$phandv <- hnd_tst
+    hnd_graph <- hand_plot()
+    p_hand_view$phandv <- hnd_graph
     
     p1_hand_plot_df <- playerHandVisual(player1$p1df)
     gg_p1_hand <- p_hand_plot(p1_hand_plot_df,"Player 1 Hand")
@@ -217,6 +241,33 @@ shinyServer(function(input, output, session) {
     p2_hand_view$p2handv <- gg_p2_hand
   })
   
+  #When player selects card on the final winner of the race
+  observeEvent(input$winBet, {
+    if (playerTurn() == "player1") {
+      p1_wl_hand$p1w <- input$selectFinal
+      p1_wl_hand$p1ws <- wlScore(p1_wl_hand$p1w, p2_wl_hand$p2w)
+      playerTurn("player2")
+    }
+    else {
+      p2_wl_hand$p2w <- input$selectFinal
+      p2_wl_hand$p2ws <- wlScore(p2_wl_hand$p2w, p1_wl_hand$p1w)
+      playerTurn("player1")
+    }
+  })
+  
+  #When player selects card on the final loser of the race
+  observeEvent(input$loseBet, {
+    if (playerTurn() == "player1") {
+      p1_wl_hand$p1l <- input$selectFinal
+      p1_wl_hand$p1ls <- wlScore(p1_wl_hand$p1l, p2_wl_hand$p2l)
+      playerTurn("player2")
+    }
+    else {
+      p2_wl_hand$p2l <- input$selectFinal
+      p1_wl_hand$p2ls <- wlScore(p2_wl_hand$p2l, p1_wl_hand$p1l)
+      playerTurn("player1")
+    }
+  })
   
   observeEvent(input$resetGame, {
     colors$colors_left <- reset_camels(colors$colors_left)
@@ -229,7 +280,7 @@ shinyServer(function(input, output, session) {
     camel_tiled$ct_df <- start_camel_tile_df
   })
   
-  
+  #removes the ability to pick camel cards if none are left
   observe({
     x <- input$pickCamel
     
@@ -239,10 +290,51 @@ shinyServer(function(input, output, session) {
                        selected = "blue")
   })
   
+  #toggles pick camel button if no cards are left
+  observe({
+    if(length(camel_server()) == 0){
+      shinyjs::hide("pickCamel")
+    }
+    else{
+      shinyjs::show("pickCamel")
+    }
+  })
+  
+  #removes ability to bet on final winner/loser if already done
+  observe({
+    if (playerTurn() == "player1" & 
+        p1_wl_hand$p1w != "") {
+      shinyjs::hide("winBet")
+    }
+    else if(playerTurn() == "player2" & 
+            p2_wl_hand$p2w != ""){
+      shinyjs::hide("winBet")
+    }
+    else{
+      shinyjs::show("winBet")
+    }
+  })
+  
+  #lose button toggle
+  observe({
+    if (playerTurn() == "player1" & 
+        p1_wl_hand$p1l != "") {
+      shinyjs::hide("loseBet")
+    }
+    else if(playerTurn() == "player2" & 
+            p2_wl_hand$p2l != ""){
+      shinyjs::hide("loseBet")
+    }
+    else{
+      shinyjs::show("loseBet")
+    }
+  })
+  
   
   pick_reactive <- eventReactive(input$pickCamel, {
     input$camelBet
   })
+  
   output$camelPick <- renderText({
     pick_reactive()
   })
@@ -344,21 +436,43 @@ shinyServer(function(input, output, session) {
     camel_ranked
   })
   
+  output$availableTitle <- renderText({
+    paste("<b>Available Cards<b>")
+  })
+  
   output$p1HandTitle <- renderText({
-    "Player 1 Hand"
+    paste("<b>Player 1 Hand</b>")
   })
   
   output$p2HandTitle <- renderText({
-    "Player 2 Hand"
+    paste("<b>Player 2 Hand<b>")
+  })
+  
+  output$p1WinTitle <- renderText({
+    paste("Winning Camel:", p1_wl_hand$p1w, "<br/>Losing Camel:", p1_wl_hand$p1l)
+  })
+  
+  output$p2WinTitle <- renderText({
+    paste("Winning Camel:", p2_wl_hand$p2w, "<br/>Losing Camel:", p2_wl_hand$p2l)
+  })
+  
+  output$spaceBreak2 <- renderText({
+    HTML(paste(" ", " ", " ", sep="<br/>"))
+  })
+  
+  output$spaceBreak <- renderText({
+    HTML(paste(" ", " ", " ", sep="<br/>"))
+  })
+  
+  output$scoreBoard <- renderText({
+    paste("<b>Score:</b>")
   })
   
   output$unrolledTitle <- renderText({
-    #"Last Roll"
     paste("<b>Unrolled Dice</b>")
   })
   
   output$lastRollTitle <- renderText({
-    #"Last Roll"
     paste("<b>Last Roll</b>")
   })
   
@@ -413,33 +527,41 @@ shinyServer(function(input, output, session) {
     x_append <- xHand(y_c_hand,x_append)
     y_append <- yHand(y_c_hand, y_append)
     
-    
-    handggplot <- ggplot() +
-      geom_point(aes(x_append, y_append),
-                 color = color_append,
-                 shape = 15,
-                 size = 8.5) +
-    geom_text(aes(x_append, y_append, label=value_hand), 
-              color = "black") +
-      theme(
-            axis.line.x = element_blank(),
-            axis.text.x = element_blank(),
-            axis.title.x = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.line.y = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_blank(),
-            panel.background = element_blank(),
-            legend.position="none") +
-      ggtitle("Available Cards") +
-      scale_x_discrete(expand = c(0, 1.9)) +
-      scale_y_discrete(expand = c(0, 1.9))
-    return(handggplot)
+    if(length(y_append)==0){
+      
+      handggplot <- ggplot() +
+        theme_void() +
+        theme(plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"))
+      return(handggplot)
+    }
+    else
+    {
+      handggplot <- ggplot() +
+        geom_point(aes(x_append, y_append),
+                   color = color_append,
+                   shape = 15,
+                   size = 8.5) +
+      geom_text(aes(x_append, y_append, label=value_hand), 
+                color = "black") +
+        theme(
+              axis.line.x = element_blank(),
+              axis.text.x = element_blank(),
+              axis.title.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.line.y = element_blank(),
+              axis.title.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank(),
+              legend.position="none") +
+        scale_x_discrete(expand = c(0, 1.9)) +
+        scale_y_discrete(expand = c(0, 1.9))
+      return(handggplot)
+    }
   }
   
   
@@ -448,8 +570,7 @@ shinyServer(function(input, output, session) {
     if (dim(p_hand_df)[1] == 0){
       handggplot <- ggplot() +
         theme_void() +
-        theme(plot.title = element_text(hjust = 0.5,vjust=-10, face="bold")) +
-        ggtitle(g_title)
+        theme(plot.title = element_text(hjust = 0.5,vjust=-10, face="bold"))
     }else{
     
     handggplot <- ggplot(data = p_hand_df, aes(x = x_vis_label,y = y_vis_label)) +
@@ -474,7 +595,6 @@ shinyServer(function(input, output, session) {
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.position="none") +
-      ggtitle(g_title) +
       scale_x_discrete(expand = c(0, 1.9)) +
       scale_y_discrete(expand = c(0, 1.9))
     }
@@ -758,6 +878,19 @@ shinyServer(function(input, output, session) {
       write.csv(bmat_list[i], b_sav_string, row.names = FALSE)
     }
     print("saved wb")
+  })
+  
+  observeEvent(input$printChoice, {
+    
+    ai_wl <- data.frame(winner = p1_wl_hand$p1w,
+                        loser = p1_wl_hand$p1l
+                        )
+    
+    initial_inputs <- aiInputs(colors$colors_left, camel_tiled$ct_df, main_matrix$df, ai_wl)
+    outputLayer <- neuronChoice(initial_inputs)
+    ai_index_choice <- which.max(outputLayer)
+    
+    print(flatchoices[ai_index_choice])
   })
   
   
