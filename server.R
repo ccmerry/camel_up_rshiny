@@ -80,165 +80,12 @@ shinyServer(function(input, output, session) {
   
   #When a die is rolled
   observeEvent(input$rollDice, {
-    dice_options <- c(1,2,3)
-    dice_number_return <- sample(dice_options, 1)
-    
-    if (playerTurn() == "player1") {
-      player_score$ps_df['player1score'] <- player_score$ps_df['player1score'] + 1
-    }
-    else {
-      player_score$ps_df['player2score'] <- player_score$ps_df['player2score'] + 1
-    }
-      
-    result_roll <- dice_roll(colors$colors_left)
-      
-    colors$colors_left <- remove_die(result_roll[2], colors$colors_left)
-      
-    main_matrix$df <- board_change(result_roll, main_matrix$df)
-      
-    camel_place <- unlist(find_camel_order(main_matrix$df), use.names=FALSE)
-      
-    output$boardTable <- renderTable({main_matrix$df})
-    output$colorsLeft <- renderText({colors$colors_left})
-    output$currentRoll <- renderText({result_roll})
-    output$camelPlaces <- renderText({camel_place})
-    
-    
-    if(length(colors$colors_left) != 0) {
-      
-    }
-    else {
-      order_list <- find_camel_order(main_matrix$df)
-      p1handscore <- calc_score(player1$p1df, order_list[1], order_list[2])
-      p2handscore <- calc_score(player2$p2df, order_list[1], order_list[2])
-      player_score$ps_df['player1score'] <- p1handscore + player_score$ps_df['player1score']
-      player_score$ps_df['player2score'] <- p2handscore + player_score$ps_df['player2score']
-      colors$colors_left <- reset_camels(colors$colors_left)
-      
-      #resets hands
-      p1_hand_view$p1handv = 0
-      p2_hand_view$p2handv = 0
-      player1$p1df = player1_df
-      player2$p2df = player2_df
-      camel_tiled$ct_df <- start_camel_tile_df
-      
-      camel_server(stable_camel)
-    }
-    
-    if (playerTurn() == "player1") {
-      playerTurn("player2")
-    }
-    else {
-      playerTurn("player1")
-    }
-    
-    output$boardPlot <- renderPlot({
-      board_df <- boardChangeDF(main_matrix$df)
-      ggplot(board_df,aes(x_axis, y_axis, color = c_c)) + 
-        geom_point(size = 6, shape = 17) + 
-        theme(axis.line.x = element_line(colour = "black"),
-              axis.text.x = element_text(size=12, face="bold", colour = "black"),
-              axis.title.x = element_blank(),
-              axis.line.y = element_blank(),
-              axis.title.y = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              panel.border = element_blank(),
-              panel.background = element_blank(),
-              legend.position="none") +
-        scale_x_discrete(limits= board_x_ticks) +
-        scale_y_discrete(limits= board_y_ticks, expand=c(.1,.1)) +
-        scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
-    })
-    
-    output$dicePlot <- renderPlot({
-      dice_df <- remainPlotDF(colors$colors_left)
-      #d_c <- dice_df[[unrolled]]
-      ggplot(dice_df,aes(x = unrolled, color = unrolled)) + 
-        geom_point(size = 8, shape = 15, stat = "count") + 
-        #ggtitle("Unrolled Dice") +
-        theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
-              axis.line.x = element_blank(),
-              axis.text.x = element_blank(),
-              axis.title.x = element_blank(),
-              axis.ticks.x = element_blank(),
-              axis.line.y = element_blank(),
-              axis.title.y = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              panel.border = element_blank(),
-              panel.background = element_blank(),
-              legend.position="none") +
-        scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
-    })
-    
-    win_status <- win_check(main_matrix$df)
-    if(win_status) {
-      print("winner")
-      
-      p1_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p1_wl_hand$p1w, p1_wl_hand$p1ws, p1_wl_hand$p1l, p1_wl_hand$p1ls)
-      p2_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p2_wl_hand$p2w, p2_wl_hand$p2ws, p2_wl_hand$p2l, p2_wl_hand$p2ls)
-      
-      player_score$ps_df['player1score'] <- player_score$ps_df['player1score'] + p1_adj
-      player_score$ps_df['player2score'] <- player_score$ps_df['player2score'] + p2_adj
-      
-      print(player_score$ps_df['player1score'])
-      print(player_score$ps_df['player2score'])
-      
-      colors$colors_left <- reset_camels(colors$colors_left)
-      main_matrix$df <- sboard()
-      order_list <- find_camel_order(main_matrix$df)
-      player1$p1df = player1_df
-      player2$p2df = player2_df
-      player_score$ps_df['player1score'] <- 0
-      player_score$ps_df['player2score'] <- 0
-      camel_tiled$ct_df <- start_camel_tile_df
-    }
-    
-    hnd_tst <- hand_plot()
-    p_hand_view$phandv <- hnd_tst
+    rollDiceChoice()
   })
   
   #When a card is picked for current leg of the race
   observeEvent(input$pickCamel, {
-    search_value <- camel_tiled$ct_df[input$camelBet] %>%
-      filter(camel_tiled$ct_df[input$camelBet] == max(camel_tiled$ct_df[input$camelBet]))
-    
-    rc_find <- which(camel_tiled$ct_df[input$camelBet] == search_value[,], arr.ind = T)
-    
-    card_value <- camel_tiled$ct_df[input$camelBet][rc_find,1]
-    
-    camel_tiled$ct_df[input$camelBet][rc_find] <- 0
-    
-    if (search_value[,] == 2){
-      camel_server_temp <- camel_server()[! camel_server() %in% input$camelBet]
-      camel_server(camel_server_temp)
-    }
-    
-    
-    if (playerTurn() == "player1") {
-      player1$p1df[input$camelBet][rc_find] = search_value[,]
-      playerTurn("player2")
-    }
-    else {
-      player2$p2df[input$camelBet][rc_find] = search_value[,]
-      playerTurn("player1")
-    }
-    
-    hnd_graph <- hand_plot()
-    p_hand_view$phandv <- hnd_graph
-    
-    p1_hand_plot_df <- playerHandVisual(player1$p1df)
-    gg_p1_hand <- p_hand_plot(p1_hand_plot_df,"Player 1 Hand")
-    p1_hand_view$p1handv <- gg_p1_hand
-    
-    p2_hand_plot_df <- playerHandVisual(player2$p2df)
-    gg_p2_hand <- p_hand_plot(p2_hand_plot_df, "Player 2 Hand")
-    p2_hand_view$p2handv <- gg_p2_hand
+    pickCamelChoice(input$camelBet)
   })
   
   #When player selects card on the final winner of the race
@@ -618,7 +465,7 @@ shinyServer(function(input, output, session) {
     
     save_dfs <- c("blue_tile_df", "green_tile_df", "orange_tile_df", "red_tile_df", "yellow_tile_df")
     
-    run_iter <- 5
+    run_iter <- 50
     
     sim_matrix <- sboard()
     sim_hand_matrix <- start_camel_tile_df
@@ -630,7 +477,11 @@ shinyServer(function(input, output, session) {
     
     sim_turn = "p2"
     
-    for(k in 1:50000){
+    for(k in 1:100000){
+      
+      if (k%%1000 == 0) {
+        print(k)
+      }
       
       if(sim_turn=="p2"){
         sim_turn <- "p1"
@@ -653,7 +504,7 @@ shinyServer(function(input, output, session) {
       outputLayer <- neuronChoice(initial_inputs)
       #learn(initial_inputs)
       
-      test_output <- rightChoice(sim_matrix, sim_hand_matrix, remain_camels, sim_wl, run_iter)
+      test_output <- rightChoice(sim_matrix, sim_hand_matrix, remain_camels, sim_wl, run_iter, FALSE)
       
       if(test_output[1] == "roll"){
         sim_roll <- dice_roll(remain_camels)
@@ -708,7 +559,10 @@ shinyServer(function(input, output, session) {
     print("set rows")
     print(nrow(training_set$ts))
     save_set <- training_set$ts
-    write.csv(save_set,"data\\simulation_results.csv", row.names = FALSE)
+    wd_name <- getwd()
+    write_name <- paste(wd_name,"//data//simulation_results.csv",sep = "")
+    print(write_name)
+    write.csv(save_set,write_name, row.names = FALSE)
   })
   
   observeEvent(input$learnSim, {
@@ -736,50 +590,54 @@ shinyServer(function(input, output, session) {
     sum_matrix_cost <- 0
     
     #how many iterations it will do before taking the average and adjusting the neurons
-    run_trials <- 50
+    run_trials <- 100
     
     for(r in 1:run_trials){
       
       #train_matrix <- neuronChoice(input_vector)
       
-      rand_input <- sample(1:15, 1)
-      randchoices <- c("blue","green","orange","red","yellow",
+      rand_input <- sample(1:16, 1)
+      #rand_input <- 2
+      randchoices <- c("roll","blue","green","orange","red","yellow",
                        "wtileblue","wtilegreen","wtileorange","wtilered","wtileyellow",
                        "ltileblue","ltilegreen","ltileorange","ltilered","ltileyellow")
       
-      if(rand_input < 6){
+      if(rand_input < 7){
         sim_results <- trial_results_df %>%
           filter(trial_results_df[,33] == randchoices[rand_input])
       }
-      else if(rand_input < 11){
+      else if(rand_input < 12){
         sim_results <- trial_results_df %>%
-          filter(stringr::str_detect(trial_results_df[,33], "wtile"))
+          #filter(stringr::str_detect(trial_results_df[,33], "wtile"))
+          filter(trial_results_df[,33] == randchoices[rand_input])
       }
       else{
         sim_results <- trial_results_df %>%
-          filter(stringr::str_detect(trial_results_df[,33], "ltile"))
+          #filter(stringr::str_detect(trial_results_df[,33], "ltile"))
+          filter(trial_results_df[,33] == randchoices[rand_input])
       }
-      sim_row <- sim_results[sample(nrow(sim_results), 1), ]
+      rand_row_index <- sample(nrow(sim_results), 1)
+      sim_row <- sim_results[rand_row_index, ]
       sim_answer <- sim_row[[1,33]]
       
       sim_index <- match(sim_answer,randchoices)
       sim_row_input <- sim_row[1:32]
       sim_row_m <- t(as.matrix(sim_row_input))
       
-      activation1 = newActivation(wmat1r(),bmat1,sim_row_m)
-      activation2 = newActivation(wmat2r(),bmat2,activation1)
-      activation3 = newActivation(wmat3r(),bmat3,activation2)
-      activation4 = newActivation(wmat4r(),bmat4,activation3)
+      activation1 = newActivation(wmat1r(),bmat1r(),sim_row_m)
+      activation2 = newActivation(wmat2r(),bmat2r(),activation1)
+      activation3 = newActivation(wmat3r(),bmat3r(),activation2)
+      activation4 = newActivation(wmat4r(),bmat4r(),activation3)
       
-      train_max <- which(activation4 == max(activation4), arr.ind=T)
-      train_index <- train_max[[1,1]]
-      train_answer <- flatchoices[sim_index]
+      #train_max <- which(activation4 == max(activation4), arr.ind=T)
+      #train_index <- train_max[[1,1]]
+      #train_answer <- flatchoices[sim_index]
       
       #Creates zero matrix with the right answer as one
       answer_neuron_matrix <- matrix(.01, 16, 1)
       
       #choseninput is the right answer
-      answer_neuron_matrix[train_index,] <- .99
+      answer_neuron_matrix[sim_index,] <- .99
       
       #Takes answers and subtracts 1 or 0 to find the cost derivative
       newitem = activation4 - answer_neuron_matrix
@@ -794,18 +652,18 @@ shinyServer(function(input, output, session) {
       cwmat4 = cdicttemp %*% t(activation3)
       
       #Calculates the changeactivation for previous layer
-      cact3 = t(as.matrix(wmat4)) %*% cdicttemp
+      cact3 = t(as.matrix(wmat4r())) %*% cdicttemp
       dsigmoid3 = activation3 * (1-activation3)
       cdicttemp = dsigmoid3 * cact3
       cbias3 = cdicttemp
       cwmat3 = cdicttemp %*% t(activation2)
-      cact2 = t(as.matrix(wmat3)) %*% cdicttemp
+      cact2 = t(as.matrix(wmat3r())) %*% cdicttemp
       
       dsigmoid2 = activation2 * (1-activation2)
       cdicttemp = dsigmoid2 * cact2
       cbias2 = cdicttemp
       cwmat2 = cdicttemp %*% t(activation1)
-      cact1 = t(as.matrix(wmat2)) %*% cdicttemp
+      cact1 = t(as.matrix(wmat2r())) %*% cdicttemp
       
       dsigmoid1 = activation1 * (1-activation1)
       cdicttemp = dsigmoid1 * cact1
@@ -831,7 +689,7 @@ shinyServer(function(input, output, session) {
       change_b2 <- change_b2 + cbias2
       change_b1 <- change_b1 + cbias1
     }
-    stepsize=.01
+    stepsize=.5
     #print(change_b4)
     wmat4s <- wmat4r() - (change_w4/run_trials * stepsize)
     wmat3s <- wmat3r() - (change_w3/run_trials * stepsize)
@@ -857,8 +715,11 @@ shinyServer(function(input, output, session) {
     
     #this print statement helps track how far off the learn matrix is
     #print(bmat4r())
-    if(sample(1:10, 1) > 8){
+    if(sample(1:10, 1) > 9){
       print(sum_matrix_cost/run_trials)
+      #print(activation4*10)
+      #print(newitem)
+      #print((change_b4/run_trials * stepsize))
     }
   }
   
@@ -887,11 +748,192 @@ shinyServer(function(input, output, session) {
                         )
     
     initial_inputs <- aiInputs(colors$colors_left, camel_tiled$ct_df, main_matrix$df, ai_wl)
+    print(initial_inputs)
     outputLayer <- neuronChoice(initial_inputs)
+    print(round(outputLayer,6))
     ai_index_choice <- which.max(outputLayer)
+    #rightChoice(sim_matrix, sim_hand_matrix, remain_camels, sim_wl, run_iter)
+    p1_wl <- p1_place_df
+    sim_wlrc <- c(p1_wl[1,1],p1_wl[1,2])
+    print(rightChoice(main_matrix$df, camel_tiled$ct_df, colors$colors_left, sim_wlrc,50, TRUE))
     
     print(flatchoices[ai_index_choice])
   })
+  
+  
+  #When a die is rolled
+  rollDiceChoice <- function(){
+    dice_options <- c(1,2,3)
+    dice_number_return <- sample(dice_options, 1)
+    
+    if (playerTurn() == "player1") {
+      player_score$ps_df['player1score'] <- player_score$ps_df['player1score'] + 1
+    }
+    else {
+      player_score$ps_df['player2score'] <- player_score$ps_df['player2score'] + 1
+    }
+    
+    result_roll <- dice_roll(colors$colors_left)
+    
+    colors$colors_left <- remove_die(result_roll[2], colors$colors_left)
+    
+    main_matrix$df <- board_change(result_roll, main_matrix$df)
+    
+    camel_place <- unlist(find_camel_order(main_matrix$df), use.names=FALSE)
+    
+    output$boardTable <- renderTable({main_matrix$df})
+    output$colorsLeft <- renderText({colors$colors_left})
+    output$currentRoll <- renderText({result_roll})
+    output$camelPlaces <- renderText({camel_place})
+    
+    
+    if(length(colors$colors_left) != 0) {
+      
+    }
+    else {
+      order_list <- find_camel_order(main_matrix$df)
+      p1handscore <- calc_score(player1$p1df, order_list[1], order_list[2])
+      p2handscore <- calc_score(player2$p2df, order_list[1], order_list[2])
+      player_score$ps_df['player1score'] <- p1handscore + player_score$ps_df['player1score']
+      player_score$ps_df['player2score'] <- p2handscore + player_score$ps_df['player2score']
+      colors$colors_left <- reset_camels(colors$colors_left)
+      
+      #resets hands
+      p1_hand_view$p1handv = 0
+      p2_hand_view$p2handv = 0
+      player1$p1df = player1_df
+      player2$p2df = player2_df
+      camel_tiled$ct_df <- start_camel_tile_df
+      
+      camel_server(stable_camel)
+    }
+    
+    if (playerTurn() == "player1") {
+      playerTurn("player2")
+    }
+    else {
+      playerTurn("player1")
+    }
+    
+    output$boardPlot <- renderPlot({
+      board_df <- boardChangeDF(main_matrix$df)
+      ggplot(board_df,aes(x_axis, y_axis, color = c_c)) + 
+        geom_point(size = 6, shape = 17) + 
+        theme(axis.line.x = element_line(colour = "black"),
+              axis.text.x = element_text(size=12, face="bold", colour = "black"),
+              axis.title.x = element_blank(),
+              axis.line.y = element_blank(),
+              axis.title.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank(),
+              legend.position="none") +
+        scale_x_discrete(limits= board_x_ticks) +
+        scale_y_discrete(limits= board_y_ticks, expand=c(.1,.1)) +
+        scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
+    })
+    
+    output$dicePlot <- renderPlot({
+      dice_df <- remainPlotDF(colors$colors_left)
+      #d_c <- dice_df[[unrolled]]
+      ggplot(dice_df,aes(x = unrolled, color = unrolled)) + 
+        geom_point(size = 8, shape = 15, stat = "count") + 
+        #ggtitle("Unrolled Dice") +
+        theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
+              axis.line.x = element_blank(),
+              axis.text.x = element_blank(),
+              axis.title.x = element_blank(),
+              axis.ticks.x = element_blank(),
+              axis.line.y = element_blank(),
+              axis.title.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank(),
+              legend.position="none") +
+        scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
+    })
+    
+    win_status <- win_check(main_matrix$df)
+    if(win_status) {
+      print("winner")
+      
+      p1_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p1_wl_hand$p1w, p1_wl_hand$p1ws, p1_wl_hand$p1l, p1_wl_hand$p1ls)
+      p2_adj = finalScore(rankedList(unlist(find_camel_order(main_matrix$df), use.names=FALSE)), p2_wl_hand$p2w, p2_wl_hand$p2ws, p2_wl_hand$p2l, p2_wl_hand$p2ls)
+      
+      player_score$ps_df['player1score'] <- player_score$ps_df['player1score'] + p1_adj
+      player_score$ps_df['player2score'] <- player_score$ps_df['player2score'] + p2_adj
+      
+      print(player_score$ps_df['player1score'])
+      print(player_score$ps_df['player2score'])
+      
+      colors$colors_left <- reset_camels(colors$colors_left)
+      main_matrix$df <- sboard()
+      order_list <- find_camel_order(main_matrix$df)
+      player1$p1df = player1_df
+      player2$p2df = player2_df
+      player_score$ps_df['player1score'] <- 0
+      player_score$ps_df['player2score'] <- 0
+      camel_tiled$ct_df <- start_camel_tile_df
+    }
+    
+    hnd_tst <- hand_plot()
+    p_hand_view$phandv <- hnd_tst
+  }
+  
+  
+  
+  #When a card is picked for current leg of the race
+  pickCamelChoice <- function(camel_pick){
+    print(camel_pick)
+    search_value <- camel_tiled$ct_df[camel_pick] %>%
+      filter(camel_tiled$ct_df[camel_pick] == max(camel_tiled$ct_df[camel_pick]))
+    
+    rc_find <- which(camel_tiled$ct_df[camel_pick] == search_value[,], arr.ind = T)
+    
+    card_value <- camel_tiled$ct_df[camel_pick][rc_find,1]
+    
+    camel_tiled$ct_df[camel_pick][rc_find] <- 0
+    
+    if (search_value[,] == 2){
+      camel_server_temp <- camel_server()[! camel_server() %in% camel_pick]
+      camel_server(camel_server_temp)
+    }
+    
+    
+    if (playerTurn() == "player1") {
+      player1$p1df[camel_pick][rc_find] = search_value[,]
+      playerTurn("player2")
+    }
+    else {
+      player2$p2df[camel_pick][rc_find] = search_value[,]
+      playerTurn("player1")
+    }
+    
+    hnd_graph <- hand_plot()
+    p_hand_view$phandv <- hnd_graph
+    
+    p1_hand_plot_df <- playerHandVisual(player1$p1df)
+    gg_p1_hand <- p_hand_plot(p1_hand_plot_df,"Player 1 Hand")
+    p1_hand_view$p1handv <- gg_p1_hand
+    
+    p2_hand_plot_df <- playerHandVisual(player2$p2df)
+    gg_p2_hand <- p_hand_plot(p2_hand_plot_df, "Player 2 Hand")
+    p2_hand_view$p2handv <- gg_p2_hand
+  }
+  
+  neuronChoice <- function(inputs){
+    activation1 = newActivation(wmat1r(),bmat1r(),inputs)
+    activation2 = newActivation(wmat2r(),bmat2r(),activation1)
+    activation3 = newActivation(wmat3r(),bmat3r(),activation2)
+    activation4 = newActivation(wmat4r(),bmat4r(),activation3)
+    return(activation4)
+  }
   
   
 })

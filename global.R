@@ -59,9 +59,9 @@ rank_list_num <- c("1.","2.","3.","4.","5.")
 
 empty_training_set <- data.frame(matrix(ncol = 33, nrow = 0))
 
-flatchoices = c('roll','blue', 'green', 'yellow', 'orange',
-                'wtilewhite', 'wtileblue', 'wtilegreen', 'wtileyellow','wtileorange', 'wtilewhite',
-                'ltileblue', 'ltilegreen','ltileyellow','ltileorange','ltilewhite')
+flatchoices = c('roll','blue', 'green', 'orange', 'red', 'yellow',
+                'wtileblue', 'wtilegreen', 'wtileorange', 'wtilered', 'wtileyellow',
+                'ltileblue', 'ltilegreen', 'ltileorange', 'ltilered', 'ltileyellow')
 
 board_x_ticks <- c("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17")
 board_y_ticks <- c("1","2","3","4","5")
@@ -524,10 +524,11 @@ if(file.exists("data\\wmatSave1.csv")){
   # Creates starting matrices for 
   for(i in 1:layers){
     wnam <- paste("wmat", i, sep = "")
-    assign(wnam, matrix(rnorm(neurons[i]*neurons[i+1], mean=0, sd=1), neurons[i+1], neurons[i]))
+    assign(wnam, matrix(rnorm(neurons[i]*neurons[i+1], mean=0, sd=1), neurons[i+1], neurons[i]) * sqrt(2/neurons[i]))
     bnam <- paste("bmat", i, sep = "")
-    assign(bnam, matrix(rnorm(neurons[i+1], mean=0, sd=1), neurons[i+1], 1))
+    assign(bnam, matrix(rnorm(neurons[i+1], mean=0, sd=1), neurons[i+1], 1) * sqrt(2/neurons[i]))
   }
+  print("new neurons")
 }
 
   
@@ -914,13 +915,13 @@ adjustWB <- function(weightorbias,adjustment,adjrunningcount){
 #'     aiplayermsg = ("AI is {}% positive of this answer.".format(aiformatchoice))
 #'     aimessagechoice(aiplayermsg,aiplayerselection)
 
-neuronChoice <- function(inputs){
-  activation1 = newActivation(wmat1,bmat1,inputs)
-  activation2 = newActivation(wmat2,bmat2,activation1)
-  activation3 = newActivation(wmat3,bmat3,activation2)
-  activation4 = newActivation(wmat4,bmat4,activation3)
-  return(activation4)
-}
+# neuronChoice <- function(inputs){
+#   activation1 = newActivation(wmat1,bmat1,inputs)
+#   activation2 = newActivation(wmat2,bmat2,activation1)
+#   activation3 = newActivation(wmat3,bmat3,activation2)
+#   activation4 = newActivation(wmat4,bmat4,activation3)
+#   return(activation4)
+# }
 
 newActivation <- function(dweight,dbias,prevact){
   dweight_m <- as.matrix(dweight)
@@ -1161,7 +1162,7 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
     roll_cord <- which(board_status == c, arr.ind = T)
     ai_info[co] <- roll_cord[1,2]/17
     co <- co + 1
-    ai_info[co] <- roll_cord[1,1]/4
+    ai_info[co] <- roll_cord[1,1]/4 - .25
   }
   
   co <- co + 1
@@ -1185,7 +1186,7 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
 }
 
 
-rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_num){
+rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_num, pcheck){
   
   run_x <- run_num - 1
   first_list <- c("",1:run_x)
@@ -1235,6 +1236,7 @@ rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_nu
     
     sim_matrix <- repeat_matrix
     c_left <- camels_left
+    
     for(c in 1:c_range){
       sim_roll <- dice_roll(c_left)
       c_left <- remove_die(sim_roll[2],c_left)
@@ -1248,6 +1250,7 @@ rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_nu
   
   s_df <- data.frame(first = c(first_list),
                      second = c(second_list))
+  #print(s_df)
   
   score_prob <- data.frame(blue = c(0,0,0),
                            green = c(0,0,0),
@@ -1264,9 +1267,12 @@ rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_nu
       score_prob[c][row,1] <- hand_matrix[c][row,1] * prob_lead - (1 - prob_lead)
     }
   }
+  if (pcheck){
+    print(score_prob)
+  }
   best_value <- max(score_prob)
   #pick value which you want ai to select a card (anything above 1pt would be a roll (roll is worth 1pt))
-  if(best_value > 1.1){
+  if(best_value > 1.2){
     best_choice <- which(score_prob == max(score_prob), arr.ind = TRUE)
     col_index <- best_choice[1,2]
     row_index <- best_choice[[1,1]]
