@@ -6,13 +6,19 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+rm(list=ls())
+library(shinyBS)
 library(shiny)
+library(ggimage)
+library(shinyWidgets)
+#install.packges("library(shinyWidgets)")
 
 # Define UI for application that draws a histogram
 shinyUI(
   fluidPage(
+    includeCSS("www/styles.css"),
     shinyjs::useShinyjs(),
+    
   
     # Application title
     titlePanel("Camel Cup"),
@@ -23,74 +29,175 @@ shinyUI(
         tabsetPanel(
           
           tabPanel("Move",
-                   p(HTML(strrep(br(), 1))),
+                   p(HTML(strrep(br(), 1)),style = "font-size: 2px;"),
+                   
+                   p(HTML(strrep(br(), 1)),style = "font-size: 2.5px;"),
                    
                   radioButtons("camelBet",
-                               "Camel", 
+                               label = tags$span(
+                                 "Camels", 
+                                 style = "font-size:15px;",
+                                 tags$i(
+                                   class = "glyphicon glyphicon-info-sign", 
+                                   style = "color:#0072B2;font-size:13px;",
+                                   title = "Bet on the camel you expect to finish first for this leg of the race."
+                                 )),
                                choices = camel_list,
                                selected = "blue"),
                   
                   fluidRow(
+                    column(12, align = "center",
                     actionButton("pickCamel",
                                  label = "Pick Camel",
-                                 style="width:50%;")),
+                                 style="width:75%;overflow:hidden;"))),
+                  
+                  p(HTML(strrep(br(), 1)),style = "font-size: .1px;"),
                   
                   fluidRow(
+                    column(12, align = "center",
                     actionButton("rollDice",
                                  label = "Roll",
-                                 style="width:50%;")),
+                                 style="width:75%;overflow:hidden;"))),
+                  
+                  p(HTML(strrep(br(), 1)),style = "font-size: 5px;"),
                   
                   
                   fluidRow(
+                    column(12, align = "center",
                     selectInput("selectFinal", 
-                                label = "Camel Win/Lose", 
+                                label = tags$span(
+                                  "Camel Win/Lose", 
+                                  style = "font-size:15px;",
+                                  tags$i(
+                                    class = "glyphicon glyphicon-info-sign", 
+                                    style = "color:#0072B2;font-size:13px;",
+                                    title = "Bet on the camel you expect to be first or last at the end of the game."
+                                  )),
                                 choices = stable_camel, 
-                                selected = 1)),
+                                selected = 1))),
                   
                   fluidRow(
                     column(6, align = "center",
                            actionButton("winBet", 
                                         label = "Win",
-                                        style="width:99%;")),
+                                        style="width:99%;overflow:hidden;")),
                     column(6, align = "center",
                            actionButton("loseBet", 
                                         label = "Lose",
-                                        style="width:99%;"))),
+                                        style="width:99%;overflow:hidden;"))),
+                  
+                  p(HTML(strrep(br(), 1)),style = "font-size: 5px;"),
                   
                   fluidRow(
+                    column(12, align = "center",
+                           actionButton("aiTurnNoClick",
+                                        label = "AI Move",
+                                        style="width:50%;overflow:hidden;"))),
+                  
+                  fluidRow(
+                    column(12, align = "center",
+                           actionButton("aiTurnMove",
+                                        label = "AI Move",
+                                        style="width:50%;overflow:hidden;"))),
+                  
+                  p(HTML(strrep(br(), 1)),style = "font-size: .1px;"),
+                  
+                  fluidRow(
+                    column(12, align = "center",
                     actionButton("resetGame",
-                                 label = "Reset",
-                                 style="width:50%;")),
+                                 label = "New Game",
+                                 style="width:75%;overflow:hidden;"))),
                   
           ),
           
           tabPanel("ML",
                    p(HTML(strrep(br(), 1))),
                    
-                   fluidRow(
-                     actionButton("runSim",
-                                  label = "Run Simulation",
-                                  style="width:50%;")),
+                   #fluidRow(
+                     #actionButton("runSim", 
+                                  #label = HTML("Run Simulation"),
+                                  #style="width:50%;overflow:hidden;")),
+                   
+                   #fluidRow(
+                     #actionButton("learnSim",
+                               #label = "Learn",
+                               #style="width:50%;overflow:hidden;")),
+                   
+                   #fluidRow(
+                     #actionButton("debugSim",
+                               #label = "Debug",
+                               #style="width:50%;overflow:hidden;")),
+                   
+                   #fluidRow(
+                     #actionButton("printChoice",
+                                  #label = "AI choice",
+                                  #style="width:50%;overflow:hidden;")),
+                   
+                   #fluidRow(
+                     #actionButton("testgraph",
+                                  #label = "AI Move",
+                                  #style="width:50%;overflow:hidden;")),
                    
                    fluidRow(
-                     actionButton("learnSim",
-                               label = "Learn",
-                               style="width:50%;")),
+                     sliderInput("slider1", 
+                                 label = "Hidden Layer 1",
+                                 min = 1,
+                                 max = 100,
+                                 ticks = FALSE,
+                                 value = 90,)),
                    
                    fluidRow(
-                     actionButton("debugSim",
-                               label = "Debug",
-                               style="width:50%;")),
+                     sliderInput("slider2", 
+                                 label = "Hidden Layer 2", 
+                                 min = 1,
+                                 max = 100,
+                                 ticks = FALSE,
+                                 value = 90)),
                    
                    fluidRow(
-                     actionButton("saveNeuron",
-                               label = "Save Sim",
-                               style="width:50%;")),
+                     sliderInput("slider3", 
+                                 label = "Hidden Layer 3", 
+                                 min = 1,
+                                 max = 100,
+                                 ticks = FALSE,
+                                 value = 90)),
                    
                    fluidRow(
-                     actionButton("printChoice",
-                                  label = "AI choice",
-                                  style="width:50%;"))
+                     column(12, align = "center",
+                            actionButton("changeNeurons",
+                                         label = "Change Neurons",
+                                         style="width:75%;overflow:hidden;"),
+                            tags$i(
+                              class = "glyphicon glyphicon-info-sign", 
+                              style = "color:#0072B2;font-size:13px;",
+                              title = "Changes the neurons to the inputs above."
+                            ))),
+                   
+                   p(HTML(strrep(br(), 1)),style = "font-size: 5px;"),
+                   
+                   fluidRow(
+                     column(12, align = "center",
+                            actionButton("learnSim",
+                                         label = "Learn",
+                                         style="width:75%;overflow:hidden;"),
+                            tags$i(
+                              class = "glyphicon glyphicon-info-sign", 
+                              style = "color:#0072B2;font-size:13px;",
+                              title = "After changing the neurons, this will train the model using the new neurons."
+                            ))),
+                   
+                   p(HTML(strrep(br(), 1)),style = "font-size: 5px;"),
+                   
+                   fluidRow(
+                     column(12, align = "center",
+                            actionButton("saveNeuron",
+                                         label = "Save Neurons",
+                                         style="width:75%;overflow:hidden;"),
+                            tags$i(
+                              class = "glyphicon glyphicon-info-sign", 
+                              style = "color:#0072B2;font-size:13px;",
+                              title = "If you have changed the neurons and trained the neurons, this will save off the results."
+                            )))
             )),
         width = 2),
       
@@ -102,18 +209,20 @@ shinyUI(
                    htmlOutput("spaceBreak2"),
                    
                    fluidRow(
-                     column(4, align="center",
+                     column(3, align="center",
                             htmlOutput("scoreBoard", 
                                        style = "font-size:160%;")),
-                     #column(4, align="center",
-                            #textOutput("pTurn")),
-                     column(4, align="left",
-                            tableOutput("playerScores")),
-                     column(4, align="center",
+                     column(3, align="left",
+                            htmlOutput("pTurn",
+                                       style = "font-size:120%;")),
+                     column(3, align="center",
+                            htmlOutput("winMsg",
+                                       style = "font-size:120%;")),
+                     column(3, align="center",
                             tableOutput("rankCamel"))
                      ),
                    
-                   plotOutput("boardPlot",height=200),
+                   plotOutput("boardPlot", height = 270),
                    htmlOutput("spaceBreak"),
                    
                    fluidRow(
@@ -124,33 +233,51 @@ shinyUI(
                      ),
                    fluidRow(
                      column(6, align="center",
-                            plotOutput("dicePlot", height = 100, width = 200)),
+                            plotOutput("dicePlot", height = 50, width = 200)),
                      column(6, align = "center",
                             textOutput("currentRoll"))
                      ),
+                   
+                   p(HTML(strrep(br(), 1)),style = "font-size: 7px;"),
                    
                    fluidRow(
                      
                      column(4, align = "center",
                             htmlOutput("availableTitle"),
-                            plotOutput("camelCardsPlot",height = 200, width = 200)),
+                            plotOutput("camelCardsPlot",height = 100, width = 200)),
                      
                      column(4, align="center",
                             htmlOutput("p1HandTitle"),
-                            plotOutput("p1CardsPlot",height = 100, width = 200),
+                            plotOutput("p1CardsPlot",height = 50, width = 200),
                             htmlOutput("p1WinTitle")),
                      
                      column(4, align="center",
                             htmlOutput("p2HandTitle"),
-                            plotOutput("p2CardsPlot",height = 100, width = 200),
+                            plotOutput("p2CardsPlot",height = 50, width = 200),
                             htmlOutput("p2WinTitle"))
                      )
                    ),
           
-          tabPanel(
-            "How to Play"
-            )
+          tabPanel("How to Play",
+                   fluidRow(
+                     column(12, 
+                            align= "left",
+                            htmlOutput("howRules")))
+                   ),
           
+          tabPanel("AI Visualization",
+                   p(HTML(strrep(br(), 1)),
+                     style = "font-size: .1px;"),
+                   plotOutput("plotLayers", height = 700)
+                   ),
+          
+          tabPanel("About",
+                   fluidRow(
+                     column(12,
+                            align = "left",
+                            htmlOutput("aboutPage"),
+                            uiOutput("tab")))
+                   )
           )
         )
       )

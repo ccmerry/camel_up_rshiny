@@ -55,25 +55,38 @@ lose_cards <- data.frame(blue = c(8,6),
                         yellow = c(8,6)
 )
 
+camel_image_df <- data.frame(image = sample(c("shiny_images\\camel_outline_xtra5.png"),
+                                            replace = TRUE)
+                             )
+
 rank_list_num <- c("1.","2.","3.","4.","5.")
 
-empty_training_set <- data.frame(matrix(ncol = 33, nrow = 0))
+empty_training_set <- data.frame(matrix(ncol = 38, nrow = 0))
 
 flatchoices = c('roll','blue', 'green', 'orange', 'red', 'yellow',
                 'wtileblue', 'wtilegreen', 'wtileorange', 'wtilered', 'wtileyellow',
                 'ltileblue', 'ltilegreen', 'ltileorange', 'ltilered', 'ltileyellow')
 
+flat_word_choices = c('Roll','Blue', 'Green', 'Orange', 'Red', 'Yellow',
+                      'Win Blue', 'Win Green', 'Win Orange', 'Win Red', 'Win Yellow',
+                      'Lose blue', 'Lose Green', 'Lose Orange', 'Lose red', 'Lose Yellow')
+
+y_axis_labels = c("Input Layer", "Hidden Layer 1", "Hidden Layer 2", "Hidden Layer 3", "Output Layer")
+
 board_x_ticks <- c("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17")
 board_y_ticks <- c("1","2","3","4","5")
+
+flatchoices_x_ticks <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
+start_label <- replicate(16, 0)
 
 #country_codes_df <- read.csv("data/country_codes.csv")
 if(file.exists("data/simulation_results.csv")){
   trial_results_df <- read.csv("data/simulation_results.csv")
 }
 
-if(file.exists("data\\wmatSave1.csv")){
-  trial_results_df <- read.csv("data/simulation_results.csv")
-}
+#if(file.exists("data\\wmatSave1.csv")){
+  #trial_results_df <- read.csv("data/simulation_results.csv")
+#}
 
 gtest <- 1
 
@@ -450,8 +463,8 @@ global_hand_plot <- function(){
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.position="none") +
-      scale_x_discrete(expand = c(0, 1.9)) +
-      scale_y_discrete(expand = c(0, 1.9))
+      scale_x_discrete(expand = c(.1, 0)) +
+      scale_y_discrete(expand = c(.01, .5))
     return(handggplot)
   }
 }
@@ -491,7 +504,7 @@ finalScore <- function(c_rnking, pick_w, w_score, pick_l, l_score){
 #Create initial neuron layers and biases
 
 #neurons = [32,90,90,90,16]
-neurons <- c(32,90,90,90,16)
+neurons <- c(37,90,90,90,16)
 
 # '''Initialize zero matrices'''
 # layers = len(neurons)-1
@@ -626,21 +639,21 @@ learn <- function(){
     
     if(rand_input < 6){
       sim_results <- trial_results_df %>%
-        filter(trial_results_df[,33] == randchoices[rand_input])
+        filter(trial_results_df[,38] == randchoices[rand_input])
     }
     else if(rand_input < 11){
       sim_results <- trial_results_df %>%
-        filter(stringr::str_detect(trial_results_df[,33], "wtile"))
+        filter(stringr::str_detect(trial_results_df[,38], "wtile"))
     }
     else{
       sim_results <- trial_results_df %>%
-        filter(stringr::str_detect(trial_results_df[,33], "ltile"))
+        filter(stringr::str_detect(trial_results_df[,38], "ltile"))
     }
     sim_row <- sim_results[sample(nrow(sim_results), 1), ]
-    sim_answer <- sim_row[[1,33]]
+    sim_answer <- sim_row[[1,38]]
     
     sim_index <- match(sim_answer,randchoices)
-    sim_row_input <- sim_row[1:32]
+    sim_row_input <- sim_row[1:37]
     sim_row_m <- t(as.matrix(sim_row_input))
     
     #train_matrix <- neuronChoice(input_vector)
@@ -1127,12 +1140,12 @@ newActivation <- function(dweight,dbias,prevact){
 # They record if the die has been rolled, which cards are left, 
 # where the camel is on the board, how many camels are on the camel,
 # and if the winner or loser tile has been chosen
-aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
+aiInputs <- function(roll_status, card_status, board_status, p2_final_status, board_order){
   
   #empty vectors need to be initialized with the correct size if you want to append elements
   ai_info <- numeric(0)
   num_cam_df <- nrow(start_camel_tile_df)*ncol(start_camel_tile_df)
-  ai_info <- c(ai_info, 1:32)
+  ai_info <- c(ai_info, 1:37)
   co <- 0
   
   # Loops over matrix for cards left
@@ -1156,13 +1169,18 @@ aiInputs <- function(roll_status, card_status, board_status, p2_final_status){
       ai_info[co] <- 0
     }
   }
+  
+  
   #need to get position for each color and # of camels above
   for(c in all_colors){
     co <- co + 1
     roll_cord <- which(board_status == c, arr.ind = T)
-    ai_info[co] <- roll_cord[1,2]/17
+    ai_info[co] <- roll_cord[1,2]/16
     co <- co + 1
     ai_info[co] <- roll_cord[1,1]/4 - .25
+    co <- co + 1
+    ai_info[co] <- match(c(c),board_order)/5
+    #print(match(c(c),board_order)/5)
   }
   
   co <- co + 1
