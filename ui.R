@@ -21,7 +21,7 @@ shinyUI(
     
   
     # Application title
-    titlePanel("Camel Cup"),
+    titlePanel("Camel Up"),
     
     # Sidebar with a slider input for number of bins
     sidebarLayout(
@@ -183,21 +183,21 @@ shinyUI(
                             tags$i(
                               class = "glyphicon glyphicon-info-sign", 
                               style = "color:#0072B2;font-size:13px;",
-                              title = "After changing the neurons, this will train the model using the new neurons."
+                              title = "After changing the neurons, this will train the model using the new neurons. Takes approximately 2 minutes to run."
                             ))),
                    
                    p(HTML(strrep(br(), 1)),style = "font-size: 5px;"),
                    
-                   fluidRow(
-                     column(12, align = "center",
-                            actionButton("saveNeuron",
-                                         label = "Save Neurons",
-                                         style="width:75%;overflow:hidden;"),
-                            tags$i(
-                              class = "glyphicon glyphicon-info-sign", 
-                              style = "color:#0072B2;font-size:13px;",
-                              title = "If you have changed the neurons and trained the neurons, this will save off the results."
-                            )))
+                   #fluidRow(
+                     #column(12, align = "center",
+                            #actionButton("saveNeuron",
+                                         #label = "Save Neurons",
+                                         #style="width:75%;overflow:hidden;"),
+                            #tags$i(
+                              #class = "glyphicon glyphicon-info-sign", 
+                              #style = "color:#0072B2;font-size:13px;",
+                              #title = "If you have changed the neurons and trained the neurons, this will save off the results."
+                            #)))
             )),
         width = 2),
       
@@ -222,7 +222,7 @@ shinyUI(
                             tableOutput("rankCamel"))
                      ),
                    
-                   plotOutput("boardPlot", height = 270),
+                   plotOutput("boardPlot", height = "100%", width = "100%"),
                    htmlOutput("spaceBreak"),
                    
                    fluidRow(
@@ -268,7 +268,20 @@ shinyUI(
           tabPanel("AI Visualization",
                    p(HTML(strrep(br(), 1)),
                      style = "font-size: .1px;"),
-                   plotOutput("plotLayers", height = 700)
+                   plotOutput("plotLayers", height = 700),
+                   p(HTML(strrep(br(), 1)),
+                     style = "font-size: .1px;"),
+                   p(HTML(strrep(br(), 1)),
+                     style = "font-size: .1px;"),
+                   fluidRow(
+                     column(3, align = "right",
+                            htmlOutput("neuronScore")),
+                     column(9, align = "left",
+                            tags$i(
+                              class = "glyphicon glyphicon-info-sign", 
+                              style = "color:#0072B2;font-size:13px;",
+                              title = "A scoring method that I developed. The score is the sum of the difference of all output neurons from the simulations correct choice. A lower score is a better score. "
+                              )))
                    ),
           
           tabPanel("About",

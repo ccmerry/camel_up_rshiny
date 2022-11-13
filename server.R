@@ -37,6 +37,8 @@ shinyServer(function(input, output, session) {
   
   game_over <-reactiveVal({FALSE})
   
+  curr_neuron_score <- reactiveVal({"0.2143938"})
+  
   
   p_hand_view <- reactiveValues(phandv = global_hand_plot())
   
@@ -219,20 +221,6 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  #lose button toggle
-  # observe({
-  #   if (playerTurn() == "player1" & 
-  #       p1_wl_hand$p1l != "") {
-  #     shinyjs::hide("loseBet")
-  #   }
-  #   else if(playerTurn() == "player2" & 
-  #           p2_wl_hand$p2l != ""){
-  #     shinyjs::hide("loseBet")
-  #   }
-  #   else{
-  #     shinyjs::show("loseBet")
-  #   }
-  # })
   
   
   pick_reactive <- eventReactive(input$pickCamel, {
@@ -269,7 +257,7 @@ shinyServer(function(input, output, session) {
   
   output$playerScores <- renderTable({
     s_table <- data.frame("Player 1" = player_score$ps_df[['player1score']],
-                          "Player 2" = player_score$ps_df[['player2score']],
+                          "AI" = player_score$ps_df[['player2score']],
                           check.names=FALSE)
     s_table
   }, digits = 0)
@@ -280,7 +268,7 @@ shinyServer(function(input, output, session) {
       turnShow(" Player 1")
     }
     else(
-      turnShow(" Player 2")
+      turnShow(" AI")
     )
     showAINeuron()
   })
@@ -315,7 +303,7 @@ shinyServer(function(input, output, session) {
       scale_x_discrete(limits= board_x_ticks) +
       scale_y_discrete(limits= board_y_ticks, expand=c(.1,.1)) +
       scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
-  })
+  }, height = 300, width = 1200)
   
   output$dicePlot <- renderPlot({
     dice_df <- remainPlotDF(colors$colors_left)
@@ -344,6 +332,10 @@ shinyServer(function(input, output, session) {
     colors$colors_left
   })
   
+  output$neuronScore <- renderText({
+    paste("<font size=3><b>","AI Intelligence Score:","</b>",curr_neuron_score(),"</font>")
+  })
+  
   output$camelPlaces <- renderText({
     camel_place <- unlist(find_camel_order(main_matrix$df), use.names=FALSE)
     camel_place
@@ -367,7 +359,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$p2HandTitle <- renderText({
-    paste("<font size=3><b>","<b>Player 2 Hand<b>","</b></font>")
+    paste("<font size=3><b>","<b>AI Hand<b>","</b></font>")
   })
   
   output$p1WinTitle <- renderText({
@@ -390,7 +382,7 @@ shinyServer(function(input, output, session) {
     paste("<b><u>Score</u></b><br/><div><font size=2>Player 1:",
           player_score$ps_df[['player1score']],
           "</font></div><font size=2></font>",
-          "<div><font size=2>Player 1:", 
+          "<div><font size=2>AI:", 
           player_score$ps_df[['player2score']],"</font></div>")
   })
   
@@ -420,21 +412,21 @@ shinyServer(function(input, output, session) {
   })
   
   output$howRules <- renderText({
-    paste("<br/><font size=3><b>The Movement of the Camels:</b></font> <br/>
+    paste("<br/><font size=3><b>The Movement of the Camels</b></font> <br/>
           The Camels move accross the Race track. During the game, the players move the Camels by rolling the dice.
           When a player chooses Roll Dice, 1 colored Die is chosen. The camel corresponding to the color die moves
           the amount rolled.<br/>
           
           <br/>
           
-          <font size=3><b>Camel Stack:</b></font> <br/>
+          <font size=3><b>Camel Stack</b></font> <br/>
           
           Camels on the same space always form a Camel stack. If a Camel is moved that is part of a Camel stack, 
           it carries along all Camels that sit on top of it. Any Camels beneath it are left where they are.<br/>
           
           <br/>
           
-          <font size=3><b>Camel Unit:</b></font> <br/>
+          <font size=3><b>Camel Unit</b></font> <br/>
           
           Since sometimes single Camels and sometimes Camel stacks are moved, we use the term Camel unit. 
           A Camel unit consists either of a single Camel or a stack of Camels.<br/>
@@ -445,14 +437,14 @@ shinyServer(function(input, output, session) {
           
           <br/>
           
-          <font size=3><b>The Legs:</b></font> <br/>
+          <font size=3><b>The Legs</b></font> <br/>
           The race comprises several Legs. A Leg ends when the last of the 5 Dice has been rolled
           and the respective Camel has moved. Right at the end of each Leg, a Leg scoring round occurs, 
           in which players receive or lose money according to the tiles they have acquired during the Leg.<br/>
           
           <br/>
           
-          <font size=3><b>Game Play:</b></font> <br/>
+          <font size=3><b>Game Play</b></font> <br/>
           The player with the Leg Starting Player marker begins the first Leg (and thus the game) by performing exactly 1 action.
           Then the next player performs 1 action, then the next player and so on. There are 3 possible actions.<br/>
           When it is your turn, you must choose and perform exactly 1 of them:<br/>
@@ -463,7 +455,7 @@ shinyServer(function(input, output, session) {
           The game ends as soon as the first Camel crosses the finish line. Then a final Leg scoring round occurs, 
           as well as an End scoring round for the overall winning Camel and the overall losing Camel.<br/>
           
-          <b>I. Take 1 Leg Betting Tile:</b> <br/>
+          <b>I. Take 1 Leg Betting Tile</b> <br/>
           Take the top Leg Betting tile from any stack on the Game board and place it in front of you. 
           By doing this, you back the Camel of that color (which means that you hope it will 
           be in the lead at the end of the Leg).<br/>
@@ -477,11 +469,10 @@ shinyServer(function(input, output, session) {
           Race betting cards (in the color of the Camel you think will win) and put it face down onto the Betting 
           space for the overall winner.<br/>
           You may instead bet on the overall loser (backing the Camel that you believe will be last on the Race 
-          track at the end of the game) by secretly choosing 1 of your Race Betting cards and putting it face 
-          down onto the Betting space for the overall loser.
-          If there are already any cards on your chosen Betting space, you simply put yours on top of those cards.
-          Once placed, a card must stay where it is, even if you later realize you backed the wrong Camel. However, 
-          as long as you have cards in hand, you may always choose as your action to place 1 of them onto either Betting space.<br/>
+          track at the end of the game).
+          Once an overall winner or loser bet has been placed, your bet must stay, even if you later 
+          realize you backed the wrong Camel. A player can only back one camel to be the overall winner
+          and one camel to be the overall loser.<br/>
           
           <br/>
           
@@ -489,8 +480,6 @@ shinyServer(function(input, output, session) {
           When a player takes the last Pyramid tile from the Game board, he first reveals the last \
           Die from the Pyramid and moves the respective Camel as usual. Then, before the next player takes his turn, 
           a Leg scoring round occurs for all players:<br/>
-          Start by giving the Leg Starting Player marker to the player that sits to the left of the player 
-          who just took the last Pyramid tile (so you will remember who will start the next Leg).<br/>
           
           Then see which Camel is in the lead (on the space farthest along the Race track). If there is a 
           stack of Camels in the lead, the leading Camel is the one on top of the stack.<br/>
@@ -510,39 +499,99 @@ shinyServer(function(input, output, session) {
           As soon as the first Camel unit crosses the finish line, the race ends immediately. 
           Now, carry out the Leg scoring round one last time. 
           After this final Leg scoring round, the End scoring round for the overall winner and overall loser occurs. 
-          For this, first attend to the face-down card deck on the Betting space for the overall winner. 
-          Remember: the card on the bottom was the first card placed, the card on top the last. 
-          Turn the entire deck face up, so that now the card placed first is face up on top while the card placed last 
-          is on the bottom. Now players gain or lose money according to the cards they have placed. Start at the top 
-          and go through the face-up deck card by card.
+          For this, first attend to the bets placed for the overall winner. 
           
           Only cards that show the actual winning Camel grant money:
           The player (if any) that picked the actual winner of the race receives 8 points.
-          The player (if any) who placed the second card showing the winner receives 5 points, 
-          the third player 3 points, the fourth player 2 EP, all others 1 points.
-          Remember: this only applies to cards showing the actual winner. For each card in the deck 
+          The player (if any) who placed the second card showing the winner receives 5 points.
+          Remember: this only applies to cards showing the actual winner. For each bet 
           that shows any Camel other than the winner, the owner of that card must pay 1 point to the bank.
-          After going through the deck for the overall winner, go through the deck of cards for the overall 
+          After going through the bets for the overall winner, go through the bets for the overall 
           loser in the same way. The overall loser, of course, is the least advanced Camel (in the case of a stack, 
           it is the Camel on the bottom of the stack).<br/>
           <br/>")
   })
   
   output$aboutPage <- renderText({
-    paste("<br/>The goal of this project was to implement a machine learning program that does not use 
-          a machine learning package. <br/>
+    paste("<br/>
+          
+          <font size=3><b>Goal</b></font> <br/>
+          
+          The goal of this project was to implement a machine learning program that does not use 
+          a machine learning package.
+          <br/>
           
           <br/>
           
           I used all custom functions to create the ai to compete against. It uses back propagation and gradient 
           descent to learn and minimize its loss function.
+          <br/>
+          
+          <br/>
+          
+          <font size=3><b>Neural Network</b></font> <br/>
+          
+          I started with a neural network with one input layer, three hidden layers, and one output layer.
+          The input layer consists of 37 different features.<br/>
+          Examples: camel space location, has a tile been selected, number of camels above a camel, etc.
+          I normalized this data by having all data in a range from 0 to 1.
+          <br/>
+          
+          <br/>
+          
+          I set all three hidden layers to ninety neurons for each layer.
+          <br/>
+          
+          <br/>
+          
+          The last layer, the output layer, contains all sixteen possible choices.
+          <br/>
+          
+          Roll x 1
+          <br/>
+          Bet on a camel to win the leg x 5
+          <br/>
+          Bet on a camel to win the overall race x 5
+          <br/>
+          Bet on a camel to lose the overall race x 5
+          <br/>
+          
+          <br/>
+          
+          I initialized the weights and biases using a normal distribution. This kept the weights and biases
+          from being at starting positions where only 'small' steps would be needed to alter the activated 
+          neurons.
+          <br/>
+          
+          <br/>
+          
+          <font size=3><b>Generating Training Data</b></font> <br/>
+          
+          To generate training data, I ran thousands of simulations. For each leg of the race, I would simulate  
+          dice rolls to calculate the probabilities of possible outcomes. I then took the current inputs of that scenario
+          and labeled with the correct choice based off the simulations.
+          <br/>
+          
+          <br/>
+          
+          <font size=3><b>Training the Data</b></font> <br/>
+          
+          Using this data, I separated the simulations by the correct choice. I then randomly picked a correct 
+          choice and pulled a scenario from that grouping. By randomly sampling from the different choices, 
+          I ensure that I do not weight the neural network by how often certain choices are the 'correct choice'.
+          <br/>
+          
+          <br/>
+          
+          Using back propagation, I took the difference in the correct neuron output and the actual neuron output
+          and adjusted my weights and biases. I repeated this process thousands of times.
           
           <br/>
           
           <br/>")
   })
   
-  url <- a("My Github link", href="https://www.google.com/")
+  url <- a("My Github link", href="https://github.com/ccmerry/camel_up_rshiny")
   
   output$tab <- renderUI({
     tagList(url)
@@ -706,15 +755,6 @@ shinyServer(function(input, output, session) {
   
   #Run simulations to find best answer
   observeEvent(input$runSim, {
-    #empty_matrix <- matrix(0, 32, 1)
-    #df <- data.frame(matrix(ncol = 32, nrow = 0))
-    #blue_tile_df <- data.frame(matrix(ncol = 32, nrow = 1))
-    #green_tile_df <- data.frame(matrix(ncol = 32, nrow = 1))
-    #orange_tile_df <- data.frame(matrix(ncol = 32, nrow = 1))
-    #red_tile_df <- data.frame(matrix(ncol = 32, nrow = 1))
-    #yellow_tile_df <- data.frame(matrix(ncol = 32, nrow = 1))
-    #training_set <- data.frame(matrix(ncol = 33, nrow = 0))
-    #training_set$ts <- data.frame(matrix(ncol = 33, nrow = 0))
     
     save_dfs <- c("blue_tile_df", "green_tile_df", "orange_tile_df", "red_tile_df", "yellow_tile_df")
     
@@ -819,13 +859,42 @@ shinyServer(function(input, output, session) {
     write.csv(save_set,write_name, row.names = FALSE)
   })
   
+  
+
+  
+  
   observeEvent(input$learnSim, {
-    for(i in 1:200){
-      learn2(20,1)
-    }
-    for(i in 1:100){
-      learn2(75,.2)
-    }
+    
+    withProgress(message = 'Running Learning Simulations', value = 0, {
+      # Number of times we'll go through the loop
+      n <- 3000
+      
+      for (i in 1:n) {
+        learn2(5,1)
+        # Increment the progress bar, and update the detail text.
+        #incProgress(1/n, detail = paste("Learning", i))
+        incProgress(1/n, detail = paste("Iteration", i))
+      }
+    })
+    #for(i in 1:3000){
+      #learn2(5,1)
+    #}
+    print("second learn")
+    withProgress(message = 'Adjusting Neurons', value = 0, {
+      # Number of times we'll go through the loop
+      n <- 100
+      
+      for (i in 1:n) {
+        learn2(50,.2)
+        # Increment the progress bar, and update the detail text.
+        #incProgress(1/n, detail = paste("Learning", i))
+        incProgress(1/n, detail = paste("Iteration", i))
+      }
+    })
+    #for(i in 1:100){
+      #learn2(75,.2)
+    #}
+    showNeuronScore()
   })
   
   observeEvent(input$debugSim, {
@@ -833,8 +902,13 @@ shinyServer(function(input, output, session) {
   })
   
   
+  showNeuronScore <- function(){
+    neuron_score <- learn2(20,.2, TRUE)
+    curr_neuron_score(neuron_score)
+  }
   
-  learn2 <- function(trials_num, step_size){
+  
+  learn2 <- function(trials_num, step_size, score_print = FALSE){
     #These are empty matrices used for the adjustments needed 
     for(i in 1:layers){
       rcw <- paste("change_w", i, sep = "")
@@ -954,16 +1028,17 @@ shinyServer(function(input, output, session) {
     bmat2s <- bmat2r() - (change_b2/run_trials * stepsize)
     bmat1s <- bmat1r() - (change_b1/run_trials * stepsize)
     
-    
-    wmat4r(wmat4s)
-    wmat3r(wmat3s)
-    wmat2r(wmat2s)
-    wmat1r(wmat1s)
-    
-    bmat4r(bmat4s)
-    bmat3r(bmat3s)
-    bmat2r(bmat2s)
-    bmat1r(bmat1s)
+    if(!score_print){
+      wmat4r(wmat4s)
+      wmat3r(wmat3s)
+      wmat2r(wmat2s)
+      wmat1r(wmat1s)
+      
+      bmat4r(bmat4s)
+      bmat3r(bmat3s)
+      bmat2r(bmat2s)
+      bmat1r(bmat1s)
+    }
     
     
     #this print statement helps track how far off the learn matrix is
@@ -972,6 +1047,10 @@ shinyServer(function(input, output, session) {
       #print(activation4*10)
       #print(newitem)
       #print((change_b4/run_trials * stepsize))
+    }
+    if(score_print){
+      print(sum_matrix_cost/run_trials)
+      return(sum_matrix_cost/run_trials)
     }
   }
   
@@ -1138,7 +1217,7 @@ shinyServer(function(input, output, session) {
         scale_x_discrete(limits= board_x_ticks) +
         scale_y_discrete(limits= board_y_ticks, expand=c(.1,.1)) +
         scale_color_manual(values = c("blue" = "blue", "green" = "green", "orange" = "orange", "red" = "red", "yellow" = "yellow"))
-    })
+    }, height = 300, width = 1200)
     
     output$dicePlot <- renderPlot({
       dice_df <- remainPlotDF(colors$colors_left)
@@ -1178,7 +1257,7 @@ shinyServer(function(input, output, session) {
         winName("PLAYER 1 WINS!")
       }
       else{
-        winName("PLAYER 2 WINS!")
+        winName("AI WINS!")
       }
       print(player_score$ps_df['player1score'])
       print(player_score$ps_df['player2score'])
@@ -1241,6 +1320,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$changeNeurons, {
     newWeightsBias()
+    showNeuronScore()
   })
   
   #When a card is picked for current leg of the race
@@ -1277,7 +1357,7 @@ shinyServer(function(input, output, session) {
     p1_hand_view$p1handv <- gg_p1_hand
     
     p2_hand_plot_df <- playerHandVisual(player2$p2df)
-    gg_p2_hand <- p_hand_plot(p2_hand_plot_df, "Player 2 Hand")
+    gg_p2_hand <- p_hand_plot(p2_hand_plot_df, "AI Hand")
     p2_hand_view$p2handv <- gg_p2_hand
   }
   

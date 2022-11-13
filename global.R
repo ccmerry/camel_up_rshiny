@@ -55,7 +55,7 @@ lose_cards <- data.frame(blue = c(8,6),
                         yellow = c(8,6)
 )
 
-camel_image_df <- data.frame(image = sample(c("shiny_images\\camel_outline_xtra5.png"),
+camel_image_df <- data.frame(image = sample(c("shiny_images/camel_outline_xtra5.png"),
                                             replace = TRUE)
                              )
 
@@ -83,10 +83,6 @@ start_label <- replicate(16, 0)
 if(file.exists("data/simulation_results.csv")){
   trial_results_df <- read.csv("data/simulation_results.csv")
 }
-
-#if(file.exists("data\\wmatSave1.csv")){
-  #trial_results_df <- read.csv("data/simulation_results.csv")
-#}
 
 gtest <- 1
 
@@ -150,7 +146,7 @@ board_change <- function(roll_result, matrix_of_board) {
   return(matrix_of_board)
 }
 
-
+#resets the board and puts camels on the board randomly
 sboard <- function() {
   new_matrix <- matrix(0, 7, 20)
   
@@ -516,18 +512,18 @@ random_dictionary <- list()
 
 
 #Checks to see if file exists for already trained data. If not it creates random weights and biases
-if(file.exists("data\\wmatSave1.csv")){
+if(file.exists("data/wmatSave1.csv")){
   for(i in 1:layers){
     
     wvar <- paste("wmatSave", i, sep = "")
-    new_string <- c("data\\",wvar,".csv")
+    new_string <- c("data/",wvar,".csv")
     w_read_string <- paste(new_string,collapse = "")
     
     wnam <- paste("wmat", i, sep = "")
     assign(wnam, read.csv(w_read_string))
     
     bvar <- paste("bmatSave", i, sep = "")
-    new_string <- c("data\\",bvar,".csv")
+    new_string <- c("data/",bvar,".csv")
     b_read_string <- paste(new_string,collapse = "")
     
     bnam <- paste("bmat", i, sep = "")
@@ -543,20 +539,6 @@ if(file.exists("data\\wmatSave1.csv")){
   }
   print("new neurons")
 }
-
-  
-
-# for x in range(layers):
-#   randdict["wmat{0}".format(y+1)] = np.zeros(shape=(neurons[y+1],neurons[y]))
-#   randdict["bmat{0}".format(y+1)] = np.zeros(shape=(neurons[y],1))
-#   y = y + 1
-# 
-# for s in range(len(neurons)-1):
-#   currentlayer = neurons[s+1]
-#   layerbefore = neurons[s]
-#   randdict["wmat{0}".format(s+1)] = np.random.randn(neurons[s+1],neurons[s]) * np.sqrt(2/neurons[s])
-#   randdict["bmat{}".format(s+1)] = np.random.randn(neurons[s+1],1) * np.sqrt(2/neurons[s])
-
 
 
 
@@ -574,56 +556,9 @@ learn <- function(){
     rcb <- paste("change_b", i, sep = "")
     assign(rcb, matrix(0, neurons[i+1], 1))
   }
-  #rcw4 = np.zeros(shape=(16,hlayer3))
-  #rcw3 = np.zeros(shape=(hlayer3,hlayer2))
-  #rcw2 = np.zeros(shape=(hlayer2,hlayer1))
-  #rcw1 = np.zeros(shape=(hlayer1,32))
-  #rcb4 = np.zeros(shape=(16,1))
-  #rcb3 = np.zeros(shape=(hlayer3,1))
-  #rcb2 = np.zeros(shape=(hlayer2,1))
-  #rcb1 = np.zeros(shape=(hlayer1,1))
   
-  
-  
-  
-  #summatrixcost = 0
   sum_matrix_cost <- 0
   
-  
-  #'flatchoices = ['roll','btile', 'gtile', 'ytile', 'otile', 'wtile',\
-  #'             'wblue', 'wgreen','wyellow','worange','wwhite',\
-  #'             lblue', 'lgreen','lyellow','lorange','lwhite']
-  #'     '''learniter is the batch size for training'''
-  #'     learniter = 20
-  #'     for i in range(learniter):
-  #'         choseninput = random.randint(0,15)
-  #'         if choseninput == 0:
-  #'             randinfo = choosescenario(rollranswer,90000,'roll')
-  #'         elif choseninput == 1:
-  #'             randinfo = choosescenario(btileranswer,15500,'btile')
-  #'         elif choseninput == 2:
-  #'             randinfo = choosescenario(gtileranswer,15500,'gtile')
-  #'         elif choseninput == 3:
-  #'             randinfo = choosescenario(ytileranswer,15500,'ytile')
-  #'         elif choseninput == 4:
-  #'             randinfo = choosescenario(otileranswer,15500,'otile')
-  #'         elif choseninput == 5:
-  #'             randinfo = choosescenario(wtileranswer,15500,'wtile')
-  #'         elif choseninput < 11:
-  #'             randinfo = choosescenario(winnerranswer,350,flatchoices[choseninput])
-  #'         else:
-  #'             randinfo = choosescenario(loserranswer,780,flatchoices[choseninput])
-  #'         
-  #'         inputm = np.matrix(randinfo)
-  #'         inputmatrix = np.transpose(inputm)
-  #'         
-  #'         activation1 = newactivation(wandb["wmat1"],wandb["bmat1"],inputmatrix)
-  #'         
-  #'         activation2 = newactivation(wandb["wmat2"],wandb["bmat2"],activation1)
-  #'         
-  #'         activation3 = newactivation(wandb["wmat3"],wandb["bmat3"],activation2)
-  #'         
-  #'         activation4 = newactivation(wandb["wmat4"],wandb["bmat4"],activation3)
   
   #how many iterations it will do before taking the average and adjusting the neurons
   run_trials <- 20
@@ -794,147 +729,6 @@ adjustWB <- function(weightorbias,adjustment,adjrunningcount){
   adjusted_neuron = wandb[weightorbias] - (adjustment/adjrunningcount*stepsize)
 }
 
-#'def getranddictionary():
-#'     global run
-#'     rcw4 = np.zeros(shape=(16,hlayer3))
-#'     rcw3 = np.zeros(shape=(hlayer3,hlayer2))
-#'     rcw2 = np.zeros(shape=(hlayer2,hlayer1))
-#'     rcw1 = np.zeros(shape=(hlayer1,32))
-#'     rcb4 = np.zeros(shape=(16,1))
-#'     rcb3 = np.zeros(shape=(hlayer3,1))
-#'     rcb2 = np.zeros(shape=(hlayer2,1))
-#'     rcb1 = np.zeros(shape=(hlayer1,1))
-#'     summatrixcost = 0
-#'     flatchoices = ['roll','btile', 'gtile', 'ytile', 'otile', 'wtile',\
-#'                   'wblue', 'wgreen','wyellow','worange','wwhite',\
-#'                  'lblue', 'lgreen','lyellow','lorange','lwhite']
-#'     '''learniter is the batch size for training'''
-#'     learniter = 20
-#'     for i in range(learniter):
-#'         choseninput = random.randint(0,15)
-#'         if choseninput == 0:
-#'             randinfo = choosescenario(rollranswer,90000,'roll')
-#'         elif choseninput == 1:
-#'             randinfo = choosescenario(btileranswer,15500,'btile')
-#'         elif choseninput == 2:
-#'             randinfo = choosescenario(gtileranswer,15500,'gtile')
-#'         elif choseninput == 3:
-#'             randinfo = choosescenario(ytileranswer,15500,'ytile')
-#'         elif choseninput == 4:
-#'             randinfo = choosescenario(otileranswer,15500,'otile')
-#'         elif choseninput == 5:
-#'             randinfo = choosescenario(wtileranswer,15500,'wtile')
-#'         elif choseninput < 11:
-#'             randinfo = choosescenario(winnerranswer,350,flatchoices[choseninput])
-#'         else:
-#'             randinfo = choosescenario(loserranswer,780,flatchoices[choseninput])
-#'         
-#'         inputm = np.matrix(randinfo)
-#'         inputmatrix = np.transpose(inputm)
-#'         
-#'         activation1 = newactivation(wandb["wmat1"],wandb["bmat1"],inputmatrix)
-#'         
-#'         activation2 = newactivation(wandb["wmat2"],wandb["bmat2"],activation1)
-#'         
-#'         activation3 = newactivation(wandb["wmat3"],wandb["bmat3"],activation2)
-#'         
-#'         activation4 = newactivation(wandb["wmat4"],wandb["bmat4"],activation3)
-#'         
-#'         '''Takes the Activations and backpropagates'''
-#'         
-#'         '''Creates zero matrix with the right answer as one'''
-#'         choicematrixadj = np.zeros(shape=(16,1))
-#'         choicematrix = choicematrixadj + .01
-#'         choicematrix[choseninput] = [.99]
-#'         '''Takes answers and subtracts 1 or 0 to find the cost derivative'''
-#'         newitem = activation4 - choicematrix
-#'         cmatrix = np.transpose(newitem)
-#'         matrixcost = cmatrix * newitem
-#'         '''Calcs the derivative of the sigmoid'''
-#'         dsigmoid4 = np.multiply(activation4, 1 - activation4)
-#'         '''Multiply the derivative of the sigmoid function by the cost by the previous layer neuron'''
-#'         cdicttemp = np.multiply(dsigmoid4,newitem*2)
-#'         cbias4 = cdicttemp
-#'         cwmat4 = cdicttemp * np.transpose(activation3)
-#'         '''Calculates the changeactivation for previous layer'''
-#'         cact3 = np.transpose(wandb["wmat4"]) * cdicttemp
-#'         
-#'         dsigmoid3 = np.multiply(activation3,1-activation3)
-#'         cdicttemp = np.multiply(dsigmoid3,cact3)
-#'         cbias3 = cdicttemp
-#'         cwmat3 = cdicttemp * np.transpose(activation2)
-#'         cact2 = np.transpose(wandb["wmat3"]) * cdicttemp
-#'         
-#'         dsigmoid2 = np.multiply(activation2,1-activation2)
-#'         cdicttemp = np.multiply(dsigmoid2,cact2)
-#'         cbias2 = cdicttemp
-#'         cwmat2 = cdicttemp * np.transpose(activation1)
-#'         cact1 = np.transpose(wandb["wmat2"]) * cdicttemp
-#'         
-#'         dsigmoid1 = np.multiply(activation1,1-activation1)
-#'         cdicttemp = np.multiply(dsigmoid1,cact1)
-#'         cbias1 = cdicttemp
-#'         cwmat1 = cdicttemp * inputm
-#'         
-#'         summatrixcost = matrixcost + summatrixcost
-#'     
-#'         rcw4 = rcw4 + cwmat4
-#'         rcw3 = rcw3 + cwmat3
-#'         rcw2 = rcw2 + cwmat2
-#'         rcw1 = rcw1 + cwmat1
-#'         
-#'         rcb4 = rcb4 + cbias4
-#'         rcb3 = rcb3 + cbias3
-#'         rcb2 = rcb2 + cbias2
-#'         rcb1 = rcb1 + cbias1
-#'     
-#'     adjustwb("wmat4",rcw4,learniter)
-#'     adjustwb("wmat3",rcw3,learniter)
-#'     adjustwb("wmat2",rcw2,learniter)
-#'     adjustwb("wmat1",rcw1,learniter)
-#'     adjustwb("bmat4",rcb4,learniter)
-#'     adjustwb("bmat3",rcb3,learniter)
-#'     adjustwb("bmat2",rcb2,learniter)
-#'     adjustwb("bmat1",rcb1,learniter)
-#'     learnitercost = summatrixcost/learniter
-#'     return learnitercost
-
-#' def adjustwb(weightorbias,adjustment,adjrunningcount):
-#'     global stepsize
-#'     global momentum
-#'     wandb[weightorbias] = wandb[weightorbias] - (adjustment/adjrunningcount*stepsize)
-
-
-#' def newneuronmatrix(inputs, paction, pdec, available):
-#'     inputm = np.matrix(inputs)
-#'     inputmatrix = np.transpose(inputm)
-#'     
-#'     activation1 = newactivation(wandb["wmat1"],wandb["bmat1"],inputmatrix)
-#'     activation2 = newactivation(wandb["wmat2"],wandb["bmat2"],activation1)
-#'     activation3 = newactivation(wandb["wmat3"],wandb["bmat3"],activation2)
-#'     activation4 = newactivation(wandb["wmat4"],wandb["bmat4"],activation3)
-#'     
-#'     finalactivation = activation4
-#'     choicemax = np.minimum(finalactivation,available)
-#'     outputlist = choicemax.tolist()
-#'     aichoice = outputlist.index(max(outputlist))
-#'     
-#'     flatchoices = ['roll','btile', 'gtile', 'ytile', 'otile', 'wtile', 'wblue', 'wgreen','wyellow','worange','wwhite',\
-#'                  'lblue', 'lgreen','lyellow','lorange','lwhite']
-#'     
-#'     aiplayerselection = flatchoices[aichoice]
-#'     formatchoice = activation4[aichoice].item()
-#'     aiformatchoice = round(formatchoice*100,3)
-#'     aiplayermsg = ("AI is {}% positive of this answer.".format(aiformatchoice))
-#'     aimessagechoice(aiplayermsg,aiplayerselection)
-
-# neuronChoice <- function(inputs){
-#   activation1 = newActivation(wmat1,bmat1,inputs)
-#   activation2 = newActivation(wmat2,bmat2,activation1)
-#   activation3 = newActivation(wmat3,bmat3,activation2)
-#   activation4 = newActivation(wmat4,bmat4,activation3)
-#   return(activation4)
-# }
 
 newActivation <- function(dweight,dbias,prevact){
   dweight_m <- as.matrix(dweight)
@@ -948,194 +742,8 @@ newActivation <- function(dweight,dbias,prevact){
   return(newactivation)
 }
 
-     
-#'def newactivation(dweight,dbias,prevact):
-#'     newactw = dweight * prevact
-#'     newactb = dbias + newactw
-#'     newactivation = sigmoid(newactb)
-#'     return newactivation
 
-
-#' '''Handles the random inputs and handles making the AI player 2 choices'''
-#' def balanceinputs(action):
-#'     global camellist
-#'     global flatchoicescount
-#'     global runtype
-#'     global saverandomscheck
-#'     global endrun
-#'     aiblue5 = -1
-#'     aiblue3 = -1
-#'     aiblue2 = -1
-#'     aigreen5 = -1
-#'     aigreen3 = -1
-#'     aigreen2 = -1
-#'     aiyellow5 = -1
-#'     aiyellow3 = -1
-#'     aiyellow2 = -1
-#'     aiorange5 = -1
-#'     aiorange3 = -1
-#'     aiorange2 = -1
-#'     aiwhite5 = -1
-#'     aiwhite3 = -1
-#'     aiwhite2 = -1
-#'         
-#'     if blue.rollstatus == 'rolled':
-#'         aiblue = 1
-#'     else:
-#'         aiblue = -1
-#'     if green.rollstatus == 'rolled':
-#'         aigreen = 1
-#'     else:
-#'         aigreen = -1
-#'     if yellow.rollstatus == 'rolled':
-#'         aiyellow = 1
-#'     else:
-#'         aiyellow = -1
-#'     if orange.rollstatus == 'rolled':
-#'         aiorange = 1
-#'     else:
-#'         aiorange = -1
-#'     if white.rollstatus == 'rolled':
-#'         aiwhite = 1
-#'     else:
-#'         aiwhite = -1
-#'     
-#'     if 'blue' in fivers.betcolors:
-#'         aiblue5 = 1
-#'     if 'blue' in threes.betcolors:
-#'         aiblue3 = 1
-#'     if 'blue' in twos.betcolors:
-#'         aiblue2 = 1
-#'     if 'green' in fivers.betcolors:
-#'         aigreen5 = 1
-#'     if 'green' in threes.betcolors:
-#'         aigreen3 = 1
-#'     if 'green' in twos.betcolors:
-#'         aigreen2 = 1
-#'     if 'yellow' in fivers.betcolors:
-#'         aiyellow5 = 1
-#'     if 'yellow' in threes.betcolors:
-#'         aiyellow3 = 1
-#'     if 'yellow' in twos.betcolors:
-#'         aiyellow2 = 1
-#'     if 'orange' in fivers.betcolors:
-#'         aiorange5 = 1
-#'     if 'orange' in threes.betcolors:
-#'         aiorange3 = 1
-#'     if 'orange' in twos.betcolors:
-#'         aiorange2 = 1
-#'     if 'white' in fivers.betcolors:
-#'         aiwhite5 = 1
-#'     if 'white' in threes.betcolors:
-#'         aiwhite3 = 1
-#'     if 'white' in twos.betcolors:
-#'         aiwhite2 = 1
-#'         
-#'     if pturn.get() == "Player 1":
-#'         if p1winner != '':
-#'             winnertile = 1
-#'         else:
-#'             winnertile = -1
-#'     elif p2winner != '':
-#'         winnertile = 1
-#'     else:
-#'         winnertile = -1
-#'     
-#'     if pturn.get() == "Player 1":
-#'         if p1loser != '':
-#'             losertile = 1
-#'         else:
-#'             losertile = -1
-#'     elif p2loser != '':
-#'         losertile = 1
-#'     else:
-#'         losertile = -1
-#'     
-#'     '''aiinfo are the inputs normalized'''
-#'     aiinfo = [(aiblue+1)/2, (aiblue5+1)/2, (aiblue3+1)/2, (aiblue2+1)/2, (blue.space-1)/17,\
-#'               (len(blue.cabove))/4,\
-#'               (aigreen+1)/2, (aigreen5+1)/2, (aigreen3+1)/2, (aigreen2+1)/2, (green.space-1)/17,\
-#'               (len(green.cabove))/4,\
-#'               (aiyellow+1)/2, (aiyellow5+1)/2, (aiyellow3+1)/2, (aiyellow2+1)/2, (yellow.space-1)/17,\
-#'               (len(yellow.cabove))/4,\
-#'               (aiorange+1)/2, (aiorange5+1)/2, (aiorange3+1)/2, (aiorange2+1)/2, (orange.space-1)/17,\
-#'               (len(orange.cabove))/4,\
-#'               (aiwhite+1)/2, (aiwhite5+1)/2, (aiwhite3+1)/2, (aiwhite2+1)/2, (white.space-1)/17,\
-#'               (len(white.cabove))/4,\
-#'               (winnertile+1)/2, (losertile+1)/2]
-#'     
-#'     flatchoices = ['roll','btile', 'gtile', 'ytile', 'otile', 'wtile', 'wblue', 'wgreen','wyellow','worange','wwhite',\
-#'                  'lblue', 'lgreen','lyellow','lorange','lwhite']
-#'     
-#'     decision = flatchoices.index(action)
-#'     '''Takes the input during "findinputs" and saves it off. The minsavepoint is the minimum number of examples for the least occuring example.'''
-#'     minsavepoint = 351
-#'     if runtype != 0:
-#'         if min(flatchoicescount) < minsavepoint:
-#'             if decision < 6:
-#'                 if action == 'roll' and flatchoicescount[0] < 150000:
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,rolldictionary)
-#'                 elif action == 'btile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,btiledictionary)
-#'                 elif action == 'gtile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,gtiledictionary)
-#'                 elif action == 'ytile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,ytiledictionary)
-#'                 elif action == 'otile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,otiledictionary)
-#'                 else:
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,wtiledictionary)
-#'             elif decision < 11:
-#'                 saveinputs(flatchoices,flatchoicescount,action,aiinfo, winnerdictionary)
-#'             else:
-#'                 saveinputs(flatchoices,flatchoicescount,action,aiinfo, loserdictionary)
-#'         elif saverandomscheck == 0:
-#'             saveinputstofile(rolldictionary, 'roll')
-#'             saveinputstofile(btiledictionary, 'btile')
-#'             saveinputstofile(gtiledictionary, 'gtile')
-#'             saveinputstofile(ytiledictionary, 'ytile')
-#'             saveinputstofile(otiledictionary, 'otile')
-#'             saveinputstofile(wtiledictionary, 'wtile')
-#'             saveinputstofile(winnerdictionary, 'winner')
-#'             saveinputstofile(loserdictionary, 'loser')
-#'             saverandomscheck = 1
-#'             print("PRINTING FLATCHOICESCOUNT")
-#'             print(flatchoicescount)
-#'             print("")
-#'             print("All Done")
-#'             '''Makes it so the program stops running once files are saved'''
-#'             run = endrun + 1
-#'         
-#'     '''Removes unavailable choices for the AI'''
-#'     if runtype == 0 and pturn.get() == "Player 2":
-#'         aichoices = np.ones((16,1))
-#'         if aiinfo[3] == 0:
-#'             aichoices[1] = 0
-#'         if aiinfo[9] == 0:
-#'             aichoices[2] = 0
-#'         if aiinfo[15] == 0:
-#'             aichoices[3] = 0
-#'         if aiinfo[21] == 0:
-#'             aichoices[4] = 0
-#'         if aiinfo[27] == 0:
-#'             aichoices[5] = 0
-#'         '''Checks if it is Player1's turn'''
-#' if winnertile == 1:
-#'   aichoices[6] = 0
-#' aichoices[7] = 0
-#' aichoices[8] = 0
-#' aichoices[9] = 0
-#' aichoices[10] = 0
-#' if losertile == 1:
-#'   aichoices[11] = 0
-#' aichoices[12] = 0
-#' aichoices[13] = 0
-#' aichoices[14] = 0
-#' aichoices[15] = 0
-#' newneuronmatrix(aiinfo, action, decision, aichoices)
-
-
-# There are 32 initial inputs 
+# There are 37 initial inputs 
 # They are stored in a list called ai_inputs
 # They record if the die has been rolled, which cards are left, 
 # where the camel is on the board, how many camels are on the camel,
@@ -1302,42 +910,3 @@ rightChoice <- function(repeat_matrix, hand_matrix, camels_left, wl_tile, run_nu
   }
 }
 
-
-
-#'''Takes the input during "findinputs" and saves it off. The minsavepoint is the minimum number of examples for the least occuring example.'''
-#'     minsavepoint = 351
-#'     if runtype != 0:
-#'         if min(flatchoicescount) < minsavepoint:
-#'             if decision < 6:
-#'                 if action == 'roll' and flatchoicescount[0] < 150000:
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,rolldictionary)
-#'                 elif action == 'btile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,btiledictionary)
-#'                 elif action == 'gtile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,gtiledictionary)
-#'                 elif action == 'ytile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,ytiledictionary)
-#'                 elif action == 'otile':
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,otiledictionary)
-#'                 else:
-#'                     saveinputs(flatchoices,flatchoicescount,action,aiinfo,wtiledictionary)
-#'             elif decision < 11:
-#'                 saveinputs(flatchoices,flatchoicescount,action,aiinfo, winnerdictionary)
-#'             else:
-#'                 saveinputs(flatchoices,flatchoicescount,action,aiinfo, loserdictionary)
-#'         elif saverandomscheck == 0:
-#'             saveinputstofile(rolldictionary, 'roll')
-#'             saveinputstofile(btiledictionary, 'btile')
-#'             saveinputstofile(gtiledictionary, 'gtile')
-#'             saveinputstofile(ytiledictionary, 'ytile')
-#'             saveinputstofile(otiledictionary, 'otile')
-#'             saveinputstofile(wtiledictionary, 'wtile')
-#'             saveinputstofile(winnerdictionary, 'winner')
-#'             saveinputstofile(loserdictionary, 'loser')
-#'             saverandomscheck = 1
-#'             print("PRINTING FLATCHOICESCOUNT")
-#'             print(flatchoicescount)
-#'             print("")
-#'             print("All Done")
-#'             '''Makes it so the program stops running once files are saved'''
-#'             run = endrun + 1
