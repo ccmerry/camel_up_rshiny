@@ -517,13 +517,12 @@ shinyServer(function(input, output, session) {
           
           <font size=3><b>Goal</b></font> <br/>
           
-          The goal of this project was to implement a machine learning program that does not use 
-          a machine learning package.
+          I set out to implement a machine learning program that does not use a machine learning package.
           <br/>
           
           <br/>
           
-          I used all custom functions to create the ai to compete against. It uses back propagation and gradient 
+          I used all custom functions to create the ai to compete. It uses backpropagation and gradient 
           descent to learn and minimize its loss function.
           <br/>
           
@@ -531,10 +530,10 @@ shinyServer(function(input, output, session) {
           
           <font size=3><b>Neural Network</b></font> <br/>
           
-          I started with a neural network with one input layer, three hidden layers, and one output layer.
+          I started with a neural network with one input layer, three hidden layers, and one output layer. 
           The input layer consists of 37 different features.<br/>
-          Examples: camel space location, has a tile been selected, number of camels above a camel, etc.
-          I normalized this data by having all data in a range from 0 to 1.
+          Examples: camel space location, has a tile been selected, number of camels above a camel, etc. 
+          I normalized this data by having all data range from 0 to 1.
           <br/>
           
           <br/>
@@ -542,9 +541,6 @@ shinyServer(function(input, output, session) {
           I set all three hidden layers to ninety neurons for each layer.
           <br/>
           
-          <br/>
-          
-          The last layer, the output layer, contains all sixteen possible choices.
           <br/>
           
           Roll x 1
@@ -558,33 +554,32 @@ shinyServer(function(input, output, session) {
           
           <br/>
           
-          I initialized the weights and biases using a normal distribution. This kept the weights and biases
-          from being at starting positions where only 'small' steps would be needed to alter the activated 
-          neurons.
+          I initialized the weights and biases using a normal distribution. This kept the weights and biases 
+          from being at starting positions where only 'small' steps would be needed to alter the activated neurons.
           <br/>
           
           <br/>
           
           <font size=3><b>Generating Training Data</b></font> <br/>
           
-          To generate training data, I ran thousands of simulations. For each leg of the race, I would simulate  
-          dice rolls to calculate the probabilities of possible outcomes. I then took the current inputs of that scenario
-          and labeled with the correct choice based off the simulations.
+          To generate a training set, I ran thousands of simulations. For each leg of the race, I would 
+          simulate dice rolls to calculate the probabilities of possible outcomes. I then took the current 
+          inputs of that scenario and labeled them with the correct choice based on the simulations.
           <br/>
           
           <br/>
           
           <font size=3><b>Training the Data</b></font> <br/>
           
-          Using this data, I separated the simulations by the correct choice. I then randomly picked a correct 
+          Using this data, I separated the simulations by the correct choice. I randomly picked a 'correct' 
           choice and pulled a scenario from that grouping. By randomly sampling from the different choices, 
-          I ensure that I do not weight the neural network by how often certain choices are the 'correct choice'.
+          I ensure that I do not weight the neural network by how often particular choices are the 'correct choice'.
           <br/>
           
           <br/>
           
-          Using back propagation, I took the difference in the correct neuron output and the actual neuron output
-          and adjusted my weights and biases. I repeated this process thousands of times.
+          Using backpropagation, I adjusted my weights and biases by the difference between the correct 
+          neuron output and the actual neuron output. I repeated this process thousands of times.
           
           <br/>
           
